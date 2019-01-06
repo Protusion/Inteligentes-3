@@ -29,7 +29,7 @@ public class HillClimbing extends OptimizationAlgorithm {
 
             for (Configuration neighbour : neighbours) {
                 double score = this.evaluate(neighbour);
-                if (score > currentScore) {
+                if (score < currentScore) {
                     currentSolution = neighbour;
                     currentScore = score;
                     improves = true;
