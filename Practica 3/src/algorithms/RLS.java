@@ -13,13 +13,44 @@ import optimization.OptimizationAlgorithm;
  *
  * @author Alberto
  */
-public class HillClimbing extends OptimizationAlgorithm {
+public class RLS extends OptimizationAlgorithm {
 
+    private int iterations = 1000;
+    
     @Override
     public void search() {
-        initSearch();
         
-        Configuration currentSolution = this.problem.genRandomConfiguration();
+        initSearch();
+
+        int i = 0;
+        while(i < iterations){
+            Configuration randomStart = problem.genRandomConfiguration();
+            Configuration localOptima = hillClimbing(randomStart);
+            evaluate(localOptima);
+            i++;
+        }
+        
+        stopSearch();
+    }
+
+    @Override
+    public void showAlgorithmStats() {
+        return;
+    }
+
+    @Override
+    public void setParams(String[] args) {
+        if (args.length > 0) {
+            try {
+                iterations = Integer.parseInt(args[0]);
+            } catch (Exception e) {
+                System.out.println("Generating a population of 1000 (\"default\").");
+            }
+        }
+    }
+    
+    public Configuration hillClimbing(Configuration configuration){
+        Configuration currentSolution = configuration.clone();
         double currentScore = evaluate(currentSolution);
         boolean improves = true;
 
@@ -35,24 +66,11 @@ public class HillClimbing extends OptimizationAlgorithm {
                     improves = true;
                 }
             }
-        }    
-        
-        stopSearch();
+        }
+        return currentSolution;
+    }        
 
-    }
     
-    
-
-    @Override
-    public void showAlgorithmStats() {
-        return;
-    }
-
-    @Override
-    public void setParams(String[] args) {
-        return;
-    }
-
     private ArrayList<Configuration> generateNeighbours(Configuration currentSolution) {
         ArrayList<Configuration> neighbours = new ArrayList<Configuration>();
         int[] values = currentSolution.getValues().clone();
@@ -69,4 +87,5 @@ public class HillClimbing extends OptimizationAlgorithm {
         
         return neighbours;
     }
+
 }
