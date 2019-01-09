@@ -6,6 +6,7 @@
 package algorithms;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import optimization.Configuration;
 import optimization.OptimizationAlgorithm;
 
@@ -16,9 +17,11 @@ import optimization.OptimizationAlgorithm;
 public class RLS extends OptimizationAlgorithm {
 
     private int iterations = 1000;
+    private ArrayList<Configuration> localOptimas = new ArrayList<Configuration>();
     
     @Override
     public void search() {
+        
         
         initSearch();
 
@@ -27,6 +30,7 @@ public class RLS extends OptimizationAlgorithm {
             Configuration randomStart = problem.genRandomConfiguration();
             Configuration localOptima = hillClimbing(randomStart);
             evaluate(localOptima);
+            localOptimas.add(localOptima);
             i++;
         }
         
@@ -35,7 +39,12 @@ public class RLS extends OptimizationAlgorithm {
 
     @Override
     public void showAlgorithmStats() {
-        return;
+        System.out.print("Local optimas: ");
+        Collections.sort(localOptimas);
+        for(Configuration localOptima : localOptimas){
+            System.out.print(localOptima.score() + ", ");
+        }
+        System.out.println();
     }
 
     @Override
