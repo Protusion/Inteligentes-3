@@ -63,7 +63,7 @@ public abstract class OptimizationAlgorithm {
 	
 	/** Finishes the search. */
 	protected void stopSearch(){
-		searchTime = (System.currentTimeMillis()-searchTime)/1000;
+		searchTime = (System.currentTimeMillis()-searchTime);
 	}
 	
 	/** Sets the problem. */
@@ -76,7 +76,7 @@ public abstract class OptimizationAlgorithm {
 		System.out.println("\nRESULTS:");
 		System.out.println("Best Score: "+bestScore);
 		System.out.println("Number of evaluations: "+evaluatedConfigurations);
-		System.out.println("Search time: "+searchTime + " seconds.");
+		System.out.println("Search time: "+searchTime + " miliseconds.");
 		showAlgorithmStats();
 	}
 

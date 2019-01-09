@@ -6,6 +6,7 @@
 package algorithms;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map.Entry;
@@ -25,25 +26,27 @@ public class GeneticAlgorithm extends OptimizationAlgorithm {
     private double probCrossover = 1;
     private int replacement = 0;
 
+    private Random r = new Random();
+
     @Override
     public void search() {
-        ArrayList<Configuration> population = new ArrayList<Configuration>();
-        HashMap<Configuration, Double> scores = new HashMap<Configuration, Double>();
-
+        ArrayList<Configuration> currentPopulation = new ArrayList<Configuration>();
         initSearch();
 
-        population = this.generatePopulation();
-        scores = this.evaluate(population);
+        currentPopulation = this.generatePopulation();
+        this.evaluate(currentPopulation);
 
         int i = 0;
         while (i < generations) {
-            ArrayList<Configuration> newPopulation = this.selectPopulation(scores);
+            ArrayList<Configuration> newPopulation = this.selectPopulation(currentPopulation);
             newPopulation = this.crossPopulation(newPopulation);
             newPopulation = this.mutatePopulation(newPopulation);
-            scores = this.evaluate(newPopulation);
-            population = this.replacement(population, newPopulation);
+            this.evaluate(newPopulation);
+            currentPopulation = this.replacement(currentPopulation, newPopulation);
             i++;
         }
+
+        stopSearch();
 
     }
 
@@ -63,46 +66,74 @@ public class GeneticAlgorithm extends OptimizationAlgorithm {
     /*
         Evaluates a population
      */
-    public HashMap<Configuration, Double> evaluate(ArrayList<Configuration> population) {
-        HashMap<Configuration, Double> scores = new HashMap<Configuration, Double>();
+    public void evaluate(ArrayList<Configuration> population) {
+
         for (Configuration individual : population) {
-            scores.put(individual, evaluate(individual));
+            evaluate(individual);
         }
 
-        return scores;
     }
 
     /*
         Selects the best individuals based on the lowest scores
      */
-    public ArrayList<Configuration> selectPopulation(HashMap<Configuration, Double> scores) {
-        ArrayList<Configuration> optimalPopulation = new ArrayList<Configuration>();
-        HashMap<Configuration, Double> currentScores = (HashMap<Configuration, Double>) scores.clone();
+    public ArrayList<Configuration> selectPopulation(ArrayList<Configuration> population) {
+        ArrayList<Configuration> newPopulation = new ArrayList<Configuration>();
+        ArrayList<Configuration> currentPopulation = (ArrayList<Configuration>) population.clone();
 
-        for (int i = 0; i < scores.size() / 2; i++) {
-            double minScore = (Collections.min(currentScores.values()));  // Returns the max value in the Hashmap
-            for (Entry<Configuration, Double> entry : scores.entrySet()) {  // Iterates through hashmap
-                if (entry.getValue() == minScore) { // Finds the configuration with the maxScore
-                    optimalPopulation.add(entry.getKey()); // Adds the configuration
-                    currentScores.remove(entry); // Removes the configuration from the set of possible configurations
+        Collections.sort(currentPopulation);
+
+        // Get an array with all of the ranks
+        int[] ranks = new int[currentPopulation.size()];
+        ranks[0] = 1;
+        int totalRank = 1;
+
+        for (int i = 1; i < currentPopulation.size(); i++) {
+            ranks[i] = i + 1;
+            totalRank += i + 1;
+        }
+
+        // Get the cumulative absolute frequencies
+        double[] frequencies = new double[currentPopulation.size()];
+        frequencies[0] = (1.0 / totalRank) * (currentPopulation.size() - ranks[0] + 1);
+        for (int i = 1; i < currentPopulation.size(); i++) {
+
+            frequencies[i] = (1.0 / totalRank) * (currentPopulation.size() - ranks[i] + 1);
+            frequencies[i] += frequencies[i - 1];
+
+        }
+
+        // Select the new population
+        boolean found;
+        for (int i = 0; i < currentPopulation.size(); i++) {
+            found = false;
+            for (int j = 0; j < frequencies.length; j++) {
+                if (frequencies[j] > r.nextDouble() && !found) {
+                    newPopulation.add(currentPopulation.get(j));
+                    found = true;
                 }
             }
         }
 
-        return optimalPopulation;
+        return newPopulation;
     }
 
     /*
-        Based on Ordered Crossover
+        Based on 2PCS crossover
      */
     public ArrayList<Configuration> crossPopulation(ArrayList<Configuration> population) {
         ArrayList<Configuration> crossedPopulation = new ArrayList<Configuration>();
-        Random r = new Random();
 
-        for (int m = 0; m < population.size() - 1; m++) {
-            if (probCrossover > r.nextDouble()) {
-                int[] parent1 = population.get(m).getValues();
-                int[] parent2 = population.get(m + 1).getValues();
+        for (int m = 0; m <= population.size()- 1; m++) {
+            if (probCrossover >= r.nextDouble()) {
+                
+                int p1 = m;
+                int p2 = m + 1;
+                
+                if(m == population.size() - 1){p2 = 0;}
+                
+                int[] parent1 = population.get(p1).getValues();
+                int[] parent2 = population.get(p2).getValues();
 
                 int l = parent1.length;
                 // Get 2 random ints between 0 and the size of the array
@@ -166,10 +197,9 @@ public class GeneticAlgorithm extends OptimizationAlgorithm {
      */
     public ArrayList<Configuration> mutatePopulation(ArrayList<Configuration> population) {
         ArrayList<Configuration> mutatedPopulation = new ArrayList<Configuration>();
-        Random r = new Random();
 
         for (Configuration individual : population) {
-            if (r.nextDouble() < probMutation) {
+            if (r.nextDouble() <= probMutation) {
                 int[] values = individual.getValues();
                 int r1 = r.nextInt(values.length);
                 int r2 = r.nextInt(values.length);
@@ -177,8 +207,10 @@ public class GeneticAlgorithm extends OptimizationAlgorithm {
                 int temp = values[r1];
                 values[r1] = values[r2];
                 values[r2] = temp;
-                
+
                 mutatedPopulation.add(new Configuration(values));
+            }else{
+                mutatedPopulation.add(individual.clone());
             }
         }
 
@@ -252,8 +284,10 @@ public class GeneticAlgorithm extends OptimizationAlgorithm {
         }
     }
 
-    /*
-        Checks if the value is inside the array (aux function to work with arrays)
+    /* ----------- Auxuliary functions ------------ */
+
+ /*
+        Checks if the value is inside the array 
      */
     private boolean arrayContains(int[] array, int value) {
 
@@ -267,13 +301,13 @@ public class GeneticAlgorithm extends OptimizationAlgorithm {
     }
 
     /*
-        Rotates the array (aux function to work with arrays)
+        Shifts the values of an array to the right the number of times specified
      */
     private int[] rotate(int[] array, int number) {
         int[] copy = array.clone();
 
         for (int j = 0; j < number; j++) {
-            int temp = copy[copy.length - 1]; // store the last element
+            int temp = copy[copy.length - 1]; // stores the last element
             for (int i = copy.length - 1; i > 0; i--) {
                 copy[i] = copy[i - 1];   // do the switch
             }
@@ -282,5 +316,4 @@ public class GeneticAlgorithm extends OptimizationAlgorithm {
 
         return array;
     }
-
 }
