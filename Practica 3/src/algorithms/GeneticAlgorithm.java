@@ -6,10 +6,7 @@
 package algorithms;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map.Entry;
 import java.util.Random;
 import optimization.Configuration;
 import optimization.OptimizationAlgorithm;
@@ -25,6 +22,8 @@ public class GeneticAlgorithm extends OptimizationAlgorithm {
     private double probMutation = 0.1;
     private double probCrossover = 1;
     private int replacement = 0;
+    
+    
 
     private Random r = new Random();
 
@@ -222,18 +221,30 @@ public class GeneticAlgorithm extends OptimizationAlgorithm {
      */
     public ArrayList<Configuration> replacement(ArrayList<Configuration> formerPopulation, ArrayList<Configuration> newPopulation) {
         ArrayList<Configuration> generatedPopulation = new ArrayList<Configuration>();
-
         switch (replacement) {
-            case 0:
+            case 0: // Replacement
                 generatedPopulation = newPopulation;
                 break;
-            case 1:
+            case 1: // Elitism
+                Collections.sort(formerPopulation);
+                Collections.sort(newPopulation);
+                for(int i = 0; i < formerPopulation.size()-2; i++){
+                    generatedPopulation.add(newPopulation.get(i));
+                }
+                generatedPopulation.add(formerPopulation.get(formerPopulation.size()-1));
                 break;
-            case 2:
+            case 2: // Truncation
+                ArrayList<Configuration> mergedPopulations = (ArrayList<Configuration>) formerPopulation.clone();
+                mergedPopulations.addAll(newPopulation);
+                Collections.sort(mergedPopulations);
+                for(int i = 0; i < formerPopulation.size()-1; i++){
+                    generatedPopulation.add(mergedPopulations.get(i));
+                }
                 break;
             default:
-                generatedPopulation = newPopulation;
+                generatedPopulation = (ArrayList<Configuration>)newPopulation.clone();
         }
+        
         return generatedPopulation;
     }
 
@@ -260,13 +271,13 @@ public class GeneticAlgorithm extends OptimizationAlgorithm {
                     try {
                         probCrossover = Integer.parseInt(args[2]);
                     } catch (Exception e) {
-                        System.out.println("Probability of  (\"default\").");
+                        System.out.println("Probability of crossover: 1 (\"default\").");
                     }
                     if (args.length > 3) {
                         try {
                             probMutation = Integer.parseInt(args[3]);
                         } catch (Exception e) {
-                            System.out.println("Generating a population of 1000 (\"default\").");
+                            System.out.println("Probability of mutation: 0.1 (\"default\").");
                         }
                         if (args.length > 4) {
                             try {
@@ -275,7 +286,7 @@ public class GeneticAlgorithm extends OptimizationAlgorithm {
                                     replacement = typeOfReplac;
                                 }
                             } catch (Exception e) {
-                                System.out.println("Generating a population of 1000 (\"default\").");
+                                System.out.println("Type of replacement: new population used (\"default\").");
                             }
                         }
                     }
