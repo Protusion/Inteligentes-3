@@ -20,7 +20,7 @@ public class HillClimbing extends OptimizationAlgorithm {
         initSearch();
 
         Configuration currentSolution = problem.genRandomConfiguration();
-        evaluate(currentSolution);
+        double currentScore = evaluate(currentSolution);
         boolean improves = true;
 
         while (improves) {
@@ -28,8 +28,10 @@ public class HillClimbing extends OptimizationAlgorithm {
             ArrayList<Configuration> neighbours = generateNeighbours(currentSolution);
 
             for (Configuration neighbour : neighbours) {
-                double score = evaluate(neighbour);
-                if (score < bestScore) {
+                double newScore = evaluate(neighbour);
+                if (newScore < currentScore) {
+                    currentSolution = neighbour.clone();
+                    currentScore = newScore;
                     improves = true;
                 }
             }
