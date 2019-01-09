@@ -30,7 +30,7 @@ public class MazeTSP extends TSP implements ProblemVisualizable {
      */
     @Override
     public ProblemView getView() {
-        MazeTSPView mazeView = new MazeTSPView(this, 600);
+        MazeTSPView mazeView = new MazeTSPView(this, 800);
         return mazeView;
     }
 
@@ -40,22 +40,19 @@ public class MazeTSP extends TSP implements ProblemVisualizable {
     @Override
     public double score(Configuration configuration) {
 
+        int[] values = configuration.getValues().clone();
+
         double score = 0;
 
-        if (posCities.size() != 0) {
-            score = dist(posAgent, posCities.get(0));
+        score += dist(posAgent, posCities.get(values[0]));
 
-            for (int i = 0; i < posCities.size() - 1; i++) {
-                score = dist(posCities.get(i), posCities.get(i + 1));
-            }
-
-            score = dist(posCities.get(posCities.size() - 1), posExit);
-        } else {
-            score = dist(posAgent, posExit);
+        for (int i = 0; i < values.length - 1; i++) {
+            score += dist(posCities.get(values[i]), posCities.get(values[i + 1]));
         }
 
-        return score;
+        score += dist(posCities.get(values[values.length - 1]), posExit);
 
+        return score;
     }
 
     /**

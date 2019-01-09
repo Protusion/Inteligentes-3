@@ -16,7 +16,7 @@ public class TSP extends OptimizationProblem implements ProblemVisualizable {
     private static Random random = new Random();
 
     /* Definition of the problem. */
-    protected int maxXYPos; 					// Dimensions
+    protected int maxXYPos = 1000; 					// Dimensions
     protected Position posAgent;                // Initial position of the agent
     protected ArrayList<Position> posCities;    // Positions of the cities 
     protected Position posExit;                 // Exit 
@@ -106,19 +106,17 @@ public class TSP extends OptimizationProblem implements ProblemVisualizable {
     @Override
     public double score(Configuration configuration) {
 
+        int[] values = configuration.getValues().clone();
+
         double score = 0;
 
-        if (posCities.size() != 0) {
-            score = dist(posAgent, posCities.get(0));
-            
-            for (int i = 0; i < posCities.size() - 1; i++) {
-                score = dist(posCities.get(i), posCities.get(i + 1));
-            }
-            
-            score = dist(posCities.get(posCities.size() - 1), posExit);
-        } else {
-            score = dist(posAgent, posExit);
+        score += dist(posAgent, posCities.get(values[0]));
+
+        for (int i = 0; i < values.length - 1; i++) {
+            score += dist(posCities.get(values[i]), posCities.get(values[i + 1]));
         }
+
+        score += dist(posCities.get(values[values.length - 1]), posExit);
 
         return score;
     }

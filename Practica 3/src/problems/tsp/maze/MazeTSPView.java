@@ -261,7 +261,7 @@ public class MazeTSPView extends JPanel implements ProblemView{
 	/** Main function, used for testing. */
 	public static void main(String[] args) {
 		MazeTSP maze = new MazeTSP(10, 10, 0);
-		MazeTSPView mazeProblemView = new MazeTSPView(maze, 800);
+		MazeTSPView mazeProblemView = new MazeTSPView(maze, 1000);
 		
 		int[] values = {0,1,2,3,4,5,6,7,8,9};
 		Configuration configuration = new Configuration(values);
