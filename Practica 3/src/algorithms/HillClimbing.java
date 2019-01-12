@@ -19,19 +19,29 @@ public class HillClimbing extends OptimizationAlgorithm {
     public void search() {
         initSearch();
         
+        /* Generates a random configuration as a starting point */
         Configuration currentSolution = this.problem.genRandomConfiguration();
+        
+        /* Evaluates the previously generated configuration */
         double currentScore = evaluate(currentSolution);
+        
         boolean improves = true;
 
+        /* While it improves ... */
         while (improves) {
             improves = false;
+            
+            /* Obtains the neighbours of the configuration we are working with */
             ArrayList<Configuration> neighbours = generateNeighbours(currentSolution);
 
+            /* For each neighour ... */
             for (Configuration neighbour : neighbours) {
+                /* It is evaluated */
                 double newScore = evaluate(neighbour);
+                /* If its score (total distance) is lower than the previous solution ... */
                 if (newScore < currentScore) {
                     currentSolution = neighbour.clone();
-                    currentScore = newScore;
+                    currentScore = newScore; 
                     improves = true;
                 }
             }
@@ -56,7 +66,7 @@ public class HillClimbing extends OptimizationAlgorithm {
     private ArrayList<Configuration> generateNeighbours(Configuration currentSolution) {
         ArrayList<Configuration> neighbours = new ArrayList<Configuration>();
         int[] values = currentSolution.getValues().clone();
-        /* Swap the values of the configuration to get a new neighbour */
+        /* Permutates the values of the configuration to get a new neighbour */
         for(int i = 0; i < currentSolution.getValues().length; i++){
             for(int j = i+1; j < currentSolution.getValues().length; j++){
                 values = currentSolution.getValues().clone();
