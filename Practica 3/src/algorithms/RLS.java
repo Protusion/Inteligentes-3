@@ -16,37 +16,48 @@ import optimization.OptimizationAlgorithm;
  */
 public class RLS extends OptimizationAlgorithm {
 
+    /* Number of iterations obtained as a parameter (default 20) */
     private int iterations = 20;
+    /* List of all Local Optimas */
     private ArrayList<Configuration> localOptimas = new ArrayList<Configuration>();
-    
+
     @Override
     public void search() {
-        
-        
+
         initSearch();
 
         int i = 0;
-        while(i < iterations){
+        while (i < iterations) {
+            /* Obtains a random configuration as a starting point */
             Configuration randomStart = problem.genRandomConfiguration();
+            /* Obtains the best solution possible with the previously generated configuration applying HillClimbing */
             Configuration localOptima = hillClimbing(randomStart);
+            /* Evaluates the new Local Optima */
             evaluate(localOptima);
+            /* Add it to the list of Local Optimas */
             localOptimas.add(localOptima);
             i++;
         }
-        
+
         stopSearch();
     }
 
+    /*
+        Shows the Local Optimas obtains thwrout all iterations
+     */
     @Override
     public void showAlgorithmStats() {
         System.out.print("Local optimas: ");
-        Collections.sort(localOptimas);
-        for(Configuration localOptima : localOptimas){
+        Collections.sort(localOptimas); // Sorts them by score
+        for (Configuration localOptima : localOptimas) {
             System.out.print(localOptima.score() + ", ");
         }
         System.out.println();
     }
 
+    /*
+        Sets the parameters for this algorithm 
+     */
     @Override
     public void setParams(String[] args) {
         if (args.length > 0) {
@@ -57,8 +68,11 @@ public class RLS extends OptimizationAlgorithm {
             }
         }
     }
-    
-    private Configuration hillClimbing(Configuration configuration){
+
+    /*
+        Hill Climbing Algorithm 
+     */
+    private Configuration hillClimbing(Configuration configuration) {
         Configuration currentSolution = configuration.clone();
         double currentScore = evaluate(currentSolution);
         boolean improves = true;
@@ -77,23 +91,23 @@ public class RLS extends OptimizationAlgorithm {
             }
         }
         return currentSolution;
-    }        
+    }
 
-    
+    /* 
+        Axuiliary function for Hill Climbing (generates neighberhood) 
+     */
     private ArrayList<Configuration> generateNeighbours(Configuration currentSolution) {
         ArrayList<Configuration> neighbours = new ArrayList<Configuration>();
         int[] values = currentSolution.getValues().clone();
-        /* Swap the values of the configuration to get a new neighbour */
-        for(int i = 0; i < currentSolution.getValues().length; i++){
-            for(int j = i+1; j < currentSolution.getValues().length; j++){
+        for (int i = 0; i < currentSolution.getValues().length; i++) {
+            for (int j = i + 1; j < currentSolution.getValues().length; j++) {
                 values = currentSolution.getValues().clone();
                 values[i] = currentSolution.getValues()[j];
                 values[j] = currentSolution.getValues()[i];
                 neighbours.add(new Configuration(values));
             }
         }
-        
-        
+
         return neighbours;
     }
 
