@@ -17,31 +17,34 @@ import optimization.OptimizationAlgorithm;
  */
 public class GeneticAlgorithm extends OptimizationAlgorithm {
 
-    private int population = 1000;
-    private int generations = 1000;
-    private double probMutation = 0.1;
-    private double probCrossover = 1;
-    private int replacement = 0;
-    
-    
+    private int population = 1000; // Number of individuals in each generation (set by parameter | default 1000)
+    private int generations = 300; // Number of iterations (set by parameter | default 300)
+    private double probMutation = 0.1; // Probability of mutating an individual (set by parameter | default 0.1)
+    private double probCrossover = 1; // Probability of crossing two individuals to generate 
+    private int replacement = 0; // Type of replacement (0 | replacement, 1 | elitism, 2 | truncation, default | replacement)
 
     private Random r = new Random();
 
     @Override
     public void search() {
-        ArrayList<Configuration> currentPopulation = new ArrayList<Configuration>();
+        
         initSearch();
 
+        ArrayList<Configuration> currentPopulation = new ArrayList<Configuration>();
+        
+        /* Generates the population */
         currentPopulation = this.generatePopulation();
+        /* Evaluates the population */
         this.evaluate(currentPopulation);
 
         int i = 0;
         while (i < generations) {
-            ArrayList<Configuration> newPopulation = this.selectPopulation(currentPopulation);
-            newPopulation = this.crossPopulation(newPopulation);
-            newPopulation = this.mutatePopulation(newPopulation);
-            this.evaluate(newPopulation);
-            currentPopulation = this.replacement(currentPopulation, newPopulation);
+            System.out.println("Iteration "+i);
+            ArrayList<Configuration> newPopulation = this.selectPopulation(currentPopulation); // Selects the new population using ranks selection
+            newPopulation = this.crossPopulation(newPopulation); // Crosses the invidiuals of the population applying 2PCS crossover
+            newPopulation = this.mutatePopulation(newPopulation); // Mutates the individuals by swaping the values of 2 random positions of values array
+            this.evaluate(newPopulation); // Evaluates the new generated population
+            currentPopulation = this.replacement(currentPopulation, newPopulation); // Combines both populations depending on the replacent type selected
             i++;
         }
 
@@ -55,6 +58,7 @@ public class GeneticAlgorithm extends OptimizationAlgorithm {
     public ArrayList<Configuration> generatePopulation() {
         ArrayList<Configuration> generatedPopulation = new ArrayList<Configuration>();
 
+        /* Loops generating random individuals */ 
         for (int i = 0; i < this.population; i++) {
             generatedPopulation.add(problem.genRandomConfiguration());
         }
@@ -66,7 +70,7 @@ public class GeneticAlgorithm extends OptimizationAlgorithm {
         Evaluates a population
      */
     public void evaluate(ArrayList<Configuration> population) {
-
+        /* Loops through all individuals evaluating them */
         for (Configuration individual : population) {
             evaluate(individual);
         }
@@ -74,15 +78,19 @@ public class GeneticAlgorithm extends OptimizationAlgorithm {
     }
 
     /*
-        Selects the best individuals based on the lowest scores
+        Selects the population apllying ranks selection
      */
     public ArrayList<Configuration> selectPopulation(ArrayList<Configuration> population) {
+        /* New population with the new individuals selected */
         ArrayList<Configuration> newPopulation = new ArrayList<Configuration>();
+        
+        /* Clone of the given population so modifications dont affect the population passed through parameters */
         ArrayList<Configuration> currentPopulation = (ArrayList<Configuration>) population.clone();
 
+        /* Sort all individuals by score */
         Collections.sort(currentPopulation);
 
-        // Get an array with all of the ranks
+        /* Get an array with all of the ranks */
         int[] ranks = new int[currentPopulation.size()];
         ranks[0] = 1;
         int totalRank = 1;
@@ -92,7 +100,7 @@ public class GeneticAlgorithm extends OptimizationAlgorithm {
             totalRank += i + 1;
         }
 
-        // Get the cumulative absolute frequencies
+        /* Get the cumulative absolute frequencies */
         double[] frequencies = new double[currentPopulation.size()];
         frequencies[0] = (1.0 / totalRank) * (currentPopulation.size() - ranks[0] + 1);
         for (int i = 1; i < currentPopulation.size(); i++) {
@@ -102,7 +110,7 @@ public class GeneticAlgorithm extends OptimizationAlgorithm {
 
         }
 
-        // Select the new population
+        /* Select the new population */
         boolean found;
         for (int i = 0; i < currentPopulation.size(); i++) {
             found = false;
@@ -118,12 +126,13 @@ public class GeneticAlgorithm extends OptimizationAlgorithm {
     }
 
     /*
-        Based on 2PCS crossover
+        Based on 2PCS crossover (https://www.youtube.com/watch?v=4YjNe3qvVlI)
      */
     public ArrayList<Configuration> crossPopulation(ArrayList<Configuration> population) {
         ArrayList<Configuration> crossedPopulation = new ArrayList<Configuration>();
-
-        for (int m = 0; m <= population.size()- 1; m++) {
+        
+        int m = 0;
+        while(crossedPopulation.size() != population.size()){
             if (probCrossover >= r.nextDouble()) {
                 
                 int p1 = m;
@@ -187,6 +196,8 @@ public class GeneticAlgorithm extends OptimizationAlgorithm {
                 crossedPopulation.add(new Configuration(child));
 
             }
+            m++;
+            if(m > population.size()){m = 0;}
         }
         return crossedPopulation;
     }
@@ -196,7 +207,6 @@ public class GeneticAlgorithm extends OptimizationAlgorithm {
      */
     public ArrayList<Configuration> mutatePopulation(ArrayList<Configuration> population) {
         ArrayList<Configuration> mutatedPopulation = new ArrayList<Configuration>();
-
         for (Configuration individual : population) {
             if (r.nextDouble() <= probMutation) {
                 int[] values = individual.getValues();
@@ -212,7 +222,6 @@ public class GeneticAlgorithm extends OptimizationAlgorithm {
                 mutatedPopulation.add(individual.clone());
             }
         }
-
         return mutatedPopulation;
     }
 
@@ -228,7 +237,7 @@ public class GeneticAlgorithm extends OptimizationAlgorithm {
             case 1: // Elitism
                 Collections.sort(formerPopulation);
                 Collections.sort(newPopulation);
-                for(int i = 0; i < formerPopulation.size()-2; i++){
+                for(int i = 0; i < formerPopulation.size()-1; i++){
                     generatedPopulation.add(newPopulation.get(i));
                 }
                 generatedPopulation.add(formerPopulation.get(formerPopulation.size()-1));
@@ -237,7 +246,7 @@ public class GeneticAlgorithm extends OptimizationAlgorithm {
                 ArrayList<Configuration> mergedPopulations = (ArrayList<Configuration>) formerPopulation.clone();
                 mergedPopulations.addAll(newPopulation);
                 Collections.sort(mergedPopulations);
-                for(int i = 0; i < formerPopulation.size()-1; i++){
+                for(int i = 0; i < formerPopulation.size(); i++){
                     generatedPopulation.add(mergedPopulations.get(i));
                 }
                 break;
@@ -312,7 +321,7 @@ public class GeneticAlgorithm extends OptimizationAlgorithm {
     }
 
     /*
-        Shifts the values of an array to the right the number of times specified
+        Shifts the values of a given array to the right, the number of times specified
      */
     private int[] rotate(int[] array, int number) {
         int[] copy = array.clone();

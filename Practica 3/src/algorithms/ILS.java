@@ -47,7 +47,7 @@ public class ILS extends OptimizationAlgorithm {
     }
 
     /*
-        Shows the Local Optimas obtains thwrout all iterations
+        Shows the Local Optimas obtained throughout all iterations
      */
     @Override
     public void showAlgorithmStats() {

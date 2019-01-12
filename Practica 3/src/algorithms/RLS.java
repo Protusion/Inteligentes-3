@@ -28,6 +28,7 @@ public class RLS extends OptimizationAlgorithm {
 
         int i = 0;
         while (i < iterations) {
+            System.out.println("Iteration "+i);
             /* Obtains a random configuration as a starting point */
             Configuration randomStart = problem.genRandomConfiguration();
             /* Obtains the best solution possible with the previously generated configuration applying HillClimbing */
@@ -43,7 +44,7 @@ public class RLS extends OptimizationAlgorithm {
     }
 
     /*
-        Shows the Local Optimas obtains thwrout all iterations
+        Shows the Local Optimas obtained throughrout all iterations
      */
     @Override
     public void showAlgorithmStats() {
